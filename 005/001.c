@@ -13,6 +13,9 @@ struct tree {
   struct tree *right;
   struct tree *left;
 };
+int max(int num1,int num2){
+  return (num1>num2?num1:num2);
+}
 
 void memfree(tree *node){
   if(node==NULL){
