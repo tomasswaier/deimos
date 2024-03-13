@@ -14,8 +14,9 @@ struct tree {
   struct tree *left;
 };
 
+tree *first = NULL;
 //height calc
-int height(tree *node){
+int vyska(tree *node){
   if(!node)
       return 0;
   return node->height;
@@ -23,30 +24,37 @@ int height(tree *node){
 int max(int num1,int num2){
   return (num1>num2?num1:num2);
 }
-tree* rotateRight(tree *y){
-  tree* x=y->left;
-  tree *t2=x->right;
-  x->right =y;
-  y->left =t2;
+tree* rotateRight(tree **y){
 
-  y->height= max(height(y->left), height(y->right))+1;
-  x->height= max(height(x->left), height(x->right))+1;
+  tree* x=(*y)->left;
+  if((*y)==first)
+   first=x;
+
+  tree *t2=x->right;
+  x->right =(*y);
+  (*y)->left =t2;
+
+  (*y)->height= max(vyska((*y)->left), vyska((*y)->right))+1;
+  x->height= max(vyska(x->left), vyska(x->right))+1;
   return x;
 }
-tree* rotateLeft(tree *y){
-  tree* x=y->right;
+tree* rotateLeft(tree **y){
+   
+  tree* x=(*y)->right;
+  if((*y)==first)
+   first=x;
   tree *t2=x->left;
-  x->left=y;
-  y->left =t2;
+  x->left=(*y);
+  (*y)->left =t2;
 
-  y->height= max(height(y->left), height(y->right))+1;
-  x->height= max(height(x->left), height(x->right))+1;
+  (*y)->height= max(vyska((*y)->left), vyska((*y)->right))+1;
+  x->height= max(vyska(x->left), vyska(x->right))+1;
   return x;
 }
 int balanceIt(tree *node){
   if(node==NULL)
       return 0;
-  return height(node->left)-height(node->right);
+  return vyska(node->left)-vyska(node->right);
 }
 void memfree(tree *node){
   if(node==NULL){
@@ -71,48 +79,54 @@ void read(tree *node){
 }
 //write function for the thingy ....
 //just writing and balancing
+void write(tree **node,tree *new){
+  int balance=0;
+  if((*node)==NULL){
+    (*node)=new;
+    return;
+  }
+  else if((*node)->val>new->val){
+    write(&(*node)->left,new);
+  }
+  else if((*node)->val<new->val){
+    write(&(*node)->right,new);
+  }
+  else{
+    printf("first\n");
+    return; 
+  } 
 
-
-void write(tree **node, tree *new) {
-  int balance = 0;
-  if (*node == NULL) {
-    (*node) = new;
-  } else if ((*node)->val > new->val) {
-    write(&(*node)->left, new);
-  } else if ((*node)->val < new->val) {
-    write(&(*node)->right, new);
-  } else {
-    printf("Duplicate value: %d\n", new->val);
+  (*node)->height=max(vyska((*node)->left),vyska((*node)->right))+1;
+  balance =balanceIt((*node));
+  printf("error1 %d \n",(*node)->height);
+  if( balance >1 && new->val < (*node)->left->val){
+    printf("got here");
+    tree *temp=rotateRight(&(*node));
     return;
   }
 
-  // Update height of the current node
-  (*node)->height = 1 + max(height((*node)->left), height((*node)->right));
+  if( balance <- 1 && new->val > (*node)->right->val){
+    printf("got here");
 
-  // Get the balance factor
-  balance = balanceIt((*node));
+    tree *temp=rotateLeft(&(*node));
+    return;
+  }
 
-  // Perform rotations if needed
-  if (balance > 1 && new->val < (*node)->left->val) {
-    *node = rotateRight(*node);
+  if(balance <-1 && new->val <(*node)->right->val){
+    (*node)->right=rotateLeft(&(*node)->right);
+    tree *temp=rotateRight(&(*node));
     return;
   }
-  if (balance < -1 && new->val > (*node)->right->val) {
-    *node = rotateLeft(*node);
+  if(balance >1 && new->val >(*node)->left->val){
+    (*node)->left=rotateLeft(&(*node)->left);
+    tree *temp=rotateLeft(&(*node));
     return;
   }
-  if (balance > 1 && new->val > (*node)->left->val) {
-    (*node)->left = rotateLeft((*node)->left);
-    *node = rotateRight(*node);
-    return;
-  }
-  if (balance < -1 && new->val < (*node)->right->val) {
-    (*node)->right = rotateRight((*node)->right);
-    *node = rotateLeft(*node);
-    return;
-  }
+
+
+
+    
 }
-
 void search(tree *node,int num){
   if(node==NULL){
     printf("invalid input\n");
@@ -134,7 +148,7 @@ void search(tree *node,int num){
 
 }
 int main() {
-  tree *first = NULL;
+  
   char type = 'k';
   while ((type = getchar()) != 'o') {
     switch (type) {
@@ -145,8 +159,9 @@ int main() {
       tree *node=first;
       new->left=NULL;
       new->right=NULL;
+      new->height=0;
       scanf("%d %s %s %d.%d.%d",&new->val,new->name,new->surname,&new->day,&new->month,&new->year);
-      printf("%d\n%s %s\n%d.%d.%d\n",new->val,new->name,new->surname,new->day,new->month,new->year);	
+     // printf("%d\n%s %s\n%d.%d.%d\n",new->val,new->name,new->surname,new->day,new->month,new->year);	
       write(&node,new); 
       break;
     }
