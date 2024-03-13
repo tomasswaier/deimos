@@ -13,10 +13,36 @@ struct tree {
   struct tree *right;
   struct tree *left;
 };
+
+//height calc
+int height(tree *node){
+  if(!node)
+      return 0;
+  return node->height;
+}
 int max(int num1,int num2){
   return (num1>num2?num1:num2);
 }
+tree* rotateRight(tree *y){
+  tree* x=y->left;
+  tree *t2=x->right;
+  x->right =y;
+  y->left =t2;
 
+  y->height= max(height(y->left), height(y->right))+1;
+  x->height= max(height(x->left), height(x->right))+1;
+  return x;
+}
+tree* rotateLeft(tree *y){
+  tree* x=y->right;
+  tree *t2=x->left;
+  x->left=y;
+  y->left =t2;
+
+  y->height= max(height(y->left), height(y->right))+1;
+  x->height= max(height(x->left), height(x->right))+1;
+  return x;
+}
 void memfree(tree *node){
   if(node==NULL){
     return;
