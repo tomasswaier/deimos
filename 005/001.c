@@ -4,8 +4,8 @@
 typedef struct tree tree;
 struct tree {
   int val;
-  char name[100];
-  char surname[100];
+  char name[25];
+  char surname[25];
   int day;
   int month;
   int year;
@@ -45,7 +45,7 @@ tree* rotateLeft(tree **y){
    first=x;
   tree *t2=x->left;
   x->left=(*y);
-  (*y)->left =t2;
+  (*y)->right=t2;
 
   (*y)->height= max(vyska((*y)->left), vyska((*y)->right))+1;
   x->height= max(vyska(x->left), vyska(x->right))+1;
@@ -100,24 +100,21 @@ void write(tree **node,tree *new){
   balance =balanceIt((*node));
   printf("error1 %d \n",(*node)->height);
   if( balance >1 && new->val < (*node)->left->val){
-    printf("got here");
     tree *temp=rotateRight(&(*node));
     return;
   }
 
   if( balance <- 1 && new->val > (*node)->right->val){
-    printf("got here");
-
     tree *temp=rotateLeft(&(*node));
     return;
   }
 
-  if(balance <-1 && new->val <(*node)->right->val){
+  if(balance >1 && new->val >(*node)->right->val){
     (*node)->right=rotateLeft(&(*node)->right);
     tree *temp=rotateRight(&(*node));
     return;
   }
-  if(balance >1 && new->val >(*node)->left->val){
+  if(balance <-1 && new->val <(*node)->left->val){
     (*node)->left=rotateLeft(&(*node)->left);
     tree *temp=rotateLeft(&(*node));
     return;
