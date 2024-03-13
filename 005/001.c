@@ -43,6 +43,11 @@ tree* rotateLeft(tree *y){
   x->height= max(height(x->left), height(x->right))+1;
   return x;
 }
+int balanceIt(tree *node){
+  if(node==NULL)
+      return 0;
+  return height(node->left)-height(node->right);
+}
 void memfree(tree *node){
   if(node==NULL){
     return;
@@ -64,27 +69,50 @@ void read(tree *node){
   return;
 
 }
-void write(tree **node,tree *new){
-  if(*node==NULL){
-    printf("writing\n");
-    (*node)=new;
-  }
-  else if((*node)->val>new->val){
+//write function for the thingy ....
+//just writing and balancing
 
-    printf("writing on left\n");
-    (*node)->val--;
-    write(&(*node)->left,new);
+
+void write(tree **node, tree *new) {
+  int balance = 0;
+  if (*node == NULL) {
+    (*node) = new;
+  } else if ((*node)->val > new->val) {
+    write(&(*node)->left, new);
+  } else if ((*node)->val < new->val) {
+    write(&(*node)->right, new);
+  } else {
+    printf("Duplicate value: %d\n", new->val);
+    return;
   }
-  else if((*node)->val<new->val){
-    printf("writing on right\n");
-    (*node)->val++;
-    write(&(*node)->right,new);
+
+  // Update height of the current node
+  (*node)->height = 1 + max(height((*node)->left), height((*node)->right));
+
+  // Get the balance factor
+  balance = balanceIt((*node));
+
+  // Perform rotations if needed
+  if (balance > 1 && new->val < (*node)->left->val) {
+    *node = rotateRight(*node);
+    return;
   }
-  else{
-    printf("first\n");
-  }  
-    
+  if (balance < -1 && new->val > (*node)->right->val) {
+    *node = rotateLeft(*node);
+    return;
+  }
+  if (balance > 1 && new->val > (*node)->left->val) {
+    (*node)->left = rotateLeft((*node)->left);
+    *node = rotateRight(*node);
+    return;
+  }
+  if (balance < -1 && new->val < (*node)->right->val) {
+    (*node)->right = rotateRight((*node)->right);
+    *node = rotateLeft(*node);
+    return;
+  }
 }
+
 void search(tree *node,int num){
   if(node==NULL){
     printf("invalid input\n");
