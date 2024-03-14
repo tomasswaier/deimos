@@ -15,6 +15,8 @@ struct tree {
 };
 //first struct . top of the tree bcs im lazy:p
 tree *first = NULL;
+//I love global variables so yummy uwwuwuwu
+int isFirst=1;
 //height calculator
 int vyska(tree *node){
   if(node==NULL)
@@ -152,17 +154,25 @@ tree* search(tree *node,int num){
 
   return NULL;
 }
-void mulsearch(tree *node,int left,int right){
- if(node==NULL)
-   return;
- else if(node->val<left)
-   mulsearch(node->right,left,right);
- else if(ndoe!
- tree* new=mulsearch(node->left,left,right);
- printf("%d\n%s %s\n%d.%d.%d\n",new->val,new->name,new->surname,new->day,new->month,new->year);	
-   
 
+
+void mulsearch(tree *node, int left, int right) {
+    if (node == NULL)
+        return;
+
+    if (node->val < left) {
+        mulsearch(node->right, left, right);
+    } else if (node->val > right) {
+        mulsearch(node->left, left, right);
+    } else {
+        mulsearch(node->left, left, right);
+        if (node->val >= left && node->val <= right) {
+            printf("%d %s %s %d.%d.%d\n", node->val, node->name, node->surname, node->day, node->month, node->year);
+        }
+        mulsearch(node->right, left, right);
+    }
 }
+
 
 //find if the thingy has one or more chilred
 //if <2 then move that child up
@@ -256,8 +266,7 @@ int main() {
       else{
 	int secondNum=0;
 	scanf("%d",&secondNum);
-	printf("searching nums:%d to %d\n",firstNum,secondNum);
-	if(firstNum<secondNum){
+	if(firstNum>secondNum){
 	  int temp=secondNum;
 	  secondNum=firstNum;
 	  firstNum=temp;
