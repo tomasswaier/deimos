@@ -121,7 +121,6 @@ void write(tree **node,tree *new){
   }
 
   if(balance >1 && new->val >(*node)->left->val){
-    printf("left");
     (*node)->left=rotateLeft(&(*node)->left);
     // if it causes weird behavior in results then add the thing to temp instead of node
     temp=rotateRight(&(*node));
@@ -152,6 +151,17 @@ tree* search(tree *node,int num){
 
 
   return NULL;
+}
+void mulsearch(tree *node,int left,int right){
+ if(node==NULL)
+   return;
+ else if(node->val<left)
+   mulsearch(node->right,left,right);
+ else if(ndoe!
+ tree* new=mulsearch(node->left,left,right);
+ printf("%d\n%s %s\n%d.%d.%d\n",new->val,new->name,new->surname,new->day,new->month,new->year);	
+   
+
 }
 
 //find if the thingy has one or more chilred
@@ -239,20 +249,23 @@ int main() {
       scanf("%d",&firstNum);
       char uwu=getchar();
       if(uwu=='\n'){
-	search(first,firstNum); 
+	tree *new=search(first,firstNum);
+	printf("%d %s %s %d.%d.%d\n",new->val,new->name,new->surname,new->day,new->month,new->year);	
+      
       }
       else{
 	int secondNum=0;
 	scanf("%d",&secondNum);
 	printf("searching nums:%d to %d\n",firstNum,secondNum);
-	if(firstNum>secondNum){
+	if(firstNum<secondNum){
 	  int temp=secondNum;
 	  secondNum=firstNum;
 	  firstNum=temp;
 	}
-	while(1){
+	mulsearch(first,firstNum,secondNum);
+
 	  //printf("%d\n%s %s\n%d.%d.%d\n",node->val,node->name,node->surname,node->day,node->month,node->year);	
-	}   
+	   
       }
       break;
       }
