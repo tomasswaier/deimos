@@ -4,8 +4,8 @@
 typedef struct tree tree;
 struct tree {
   int val;
-  char name[25];
-  char surname[25];
+  char name[40];
+  char surname[40];
   int day;
   int month;
   int year;
@@ -92,34 +92,28 @@ void write(tree **node,tree *new){
     write(&(*node)->right,new);
   }
   else{
-    printf("first\n");
     return; 
   } 
 
   (*node)->height=max(vyska((*node)->left),vyska((*node)->right))+1;
 
   balance =balanceIt((*node));
-  printf("%d %d\n",(*node)->height,balance);
   if( balance >1 && new->val < (*node)->left->val){
-    printf("1\n");
     *node=rotateRight(&(*node));
     return;
   }
 
   if( balance <- 1 && new->val > (*node)->right->val){
-    printf("2\n");
      *node=rotateLeft(&(*node));
     return;
   }
 
   if(balance >1 && new->val >(*node)->left->val){
-    printf("3\n");
     (*node)->right=rotateLeft(&(*node)->left); // if it causes weird behavior in results then add the thing to temp instead of node
     *node=rotateRight(&(*node));
     return;
   }
   if(balance <-1 && new->val <(*node)->right->val){
-    printf("4\n");
     (*node)->left=rotateLeft(&(*node)->right);
     *node=rotateLeft(&(*node));
     return;
@@ -129,23 +123,83 @@ void write(tree **node,tree *new){
 
     
 }
-void search(tree *node,int num){
+tree* search(tree *node,int num){
   if(node==NULL){
-    printf("invalid input\n");
-    return;
+    return NULL;
   }
   else if(node->val==num){
-    printf("%d\n%s %s\n%d.%d.%d\n",node->val,node->name,node->surname,node->day,node->month,node->year);	
-    return;
+    return node;
   }
   else if(num>node->val)
       search(node->right,num);
   else if(num<node->val)
       search(node->left,num);
-  else{ 
-      return;} 
 
 
+
+  return NULL;
+}
+
+//find if the thingy has one or more chilred
+//if <2 then move that child up
+//else uwu
+tree *delete(tree *node,int num){
+  if (node==NULL){
+    return node;
+  }
+  if(num<node->val)
+    node->left=delete(node->left,num);
+  else if(num>node->val)
+    node->right=delete(node->right,num);
+  else{
+    //
+    tree *temp;
+    if(!node->right ||!node->left ){
+      temp=node->left?node->left:node->right;
+      if(!temp){
+	temp = node;
+	node= NULL;
+      }
+      else if(temp)
+	  *node=*temp;
+      free(temp);
+
+    }
+    else{
+      temp=node->right;
+      while(temp->left!=NULL)
+	temp=temp->left;
+
+      node->val=temp->val;
+      node->right=delete(node->right,temp->val);
+    }
+
+
+
+  }
+  if(!node)
+    return node;
+  
+  node->height=max(vyska(node->left),vyska(node->right));
+  int balance =balanceIt(node);
+  if(balance >1 && balanceIt(node->left)>=0){
+    return rotateRight(&node);
+  }
+  if(balance >1 && balanceIt(node->left)<0){
+    node->left=rotateLeft(&node->left);
+    return rotateRight(&node);
+  }
+
+  if(balance <-1 && balanceIt(node->right)<=0){
+    return rotateLeft(&node);
+  }
+
+  if(balance <-1 && balanceIt(node->right)>0)
+  {
+    node->right=rotateRight(&node->right);
+    return rotateLeft(&node);
+  }
+  return node;
 
 }
 int main() {
@@ -178,12 +232,23 @@ int main() {
 	int secondNum=0;
 	scanf("%d",&secondNum);
 	printf("searching nums:%d to %d\n",firstNum,secondNum);
+	if(firstNum>secondNum){
+	  int temp=secondNum;
+	  secondNum=firstNum;
+	  firstNum=temp;
+	}
+	while(1){
+	  //printf("%d\n%s %s\n%d.%d.%d\n",node->val,node->name,node->surname,node->day,node->month,node->year);	
+	}   
       }
       break;
       }
-    case ('d'):
-      printf("hiya i\n");
+    case ('d'):{
+      int num; 
+      scanf("%d",&num);
+      first=delete(first,num);
       break;
+    }
     case('r'):
       printf("reading");
       read(first);
@@ -195,5 +260,6 @@ int main() {
       break;
     }
   }
+  
   memfree(first);
 }
