@@ -33,6 +33,9 @@ tree* rotateRight(tree **y){
 
   (*y)->height= max(vyska((*y)->left), vyska((*y)->right))+1;
   x->height= max(vyska(x->left), vyska(x->right))+1;
+  if(*y==first)
+      first=x;
+  *y=x;
   return x;
 }
 tree* rotateLeft(tree **y){
@@ -45,6 +48,11 @@ tree* rotateLeft(tree **y){
 
   (*y)->height= max(vyska((*y)->left), vyska((*y)->right))+1;
   x->height= max(vyska(x->left), vyska(x->right))+1;
+  if(*y==first)
+      first=x;
+  *y = x;
+  
+
   return x;
 }
 int balanceIt(tree *node){
@@ -123,8 +131,6 @@ void write(tree **node,tree *new){
   }
   if(balance <-1 && new->val <(*node)->right->val){
     (*node)->right=rotateRight(&(*node)->right);
-    read(first);
-
     temp=rotateLeft(&(*node));
     if((*node)==first)
       first=temp;
