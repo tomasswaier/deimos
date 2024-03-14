@@ -113,7 +113,8 @@ void write(tree **node,tree *new){
   }
 
   if(balance >1 && new->val >(*node)->left->val){
-    (*node)->right=rotateLeft(&(*node)->left);
+    printf("left");
+    (*node)->left=rotateLeft(&(*node)->left);
     // if it causes weird behavior in results then add the thing to temp instead of node
     temp=rotateRight(&(*node));
     if(*node==first)
@@ -121,7 +122,7 @@ void write(tree **node,tree *new){
     return;
   }
   if(balance <-1 && new->val <(*node)->right->val){
-    (*node)->left=rotateRight(&(*node)->right);
+    (*node)->right=rotateRight(&(*node)->right);
     read(first);
 
     temp=rotateLeft(&(*node));
