@@ -13,13 +13,13 @@ struct tree {
   struct tree *right;
   struct tree *left;
 };
-
+//first struct . top of the tree bcs im lazy:p
 tree *first = NULL;
-//height calc
+//height calculator
 int vyska(tree *node){
   if(!node)
       return 0;
-  return node->height;
+  return node->height+1;
 }
 int max(int num1,int num2){
   return (num1>num2?num1:num2);
@@ -97,26 +97,31 @@ void write(tree **node,tree *new){
   } 
 
   (*node)->height=max(vyska((*node)->left),vyska((*node)->right))+1;
+
   balance =balanceIt((*node));
-  printf("error1 %d \n",(*node)->height);
+  printf("%d %d\n",(*node)->height,balance);
   if( balance >1 && new->val < (*node)->left->val){
-    tree *temp=rotateRight(&(*node));
+    printf("1\n");
+    *node=rotateRight(&(*node));
     return;
   }
 
   if( balance <- 1 && new->val > (*node)->right->val){
-    tree *temp=rotateLeft(&(*node));
+    printf("2\n");
+     *node=rotateLeft(&(*node));
     return;
   }
 
-  if(balance >1 && new->val >(*node)->right->val){
-    (*node)->right=rotateLeft(&(*node)->right);
-    tree *temp=rotateRight(&(*node));
+  if(balance >1 && new->val >(*node)->left->val){
+    printf("3\n");
+    (*node)->right=rotateLeft(&(*node)->left); // if it causes weird behavior in results then add the thing to temp instead of node
+    *node=rotateRight(&(*node));
     return;
   }
-  if(balance <-1 && new->val <(*node)->left->val){
-    (*node)->left=rotateLeft(&(*node)->left);
-    tree *temp=rotateLeft(&(*node));
+  if(balance <-1 && new->val <(*node)->right->val){
+    printf("4\n");
+    (*node)->left=rotateLeft(&(*node)->right);
+    *node=rotateLeft(&(*node));
     return;
   }
 
@@ -138,7 +143,6 @@ void search(tree *node,int num){
   else if(num<node->val)
       search(node->left,num);
   else{ 
-      printf("error");
       return;} 
 
 
