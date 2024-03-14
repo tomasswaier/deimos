@@ -17,9 +17,9 @@ struct tree {
 tree *first = NULL;
 //height calculator
 int vyska(tree *node){
-  if(!node)
+  if(node==NULL)
       return 0;
-  return node->height+1;
+  return node->height;
 }
 int max(int num1,int num2){
   return (num1>num2?num1:num2);
@@ -27,9 +27,6 @@ int max(int num1,int num2){
 tree* rotateRight(tree **y){
 
   tree* x=(*y)->left;
-  if((*y)==first)
-   first=x;
-
   tree *t2=x->right;
   x->right =(*y);
   (*y)->left =t2;
@@ -41,8 +38,7 @@ tree* rotateRight(tree **y){
 tree* rotateLeft(tree **y){
    
   tree* x=(*y)->right;
-  if((*y)==first)
-   first=x;
+
   tree *t2=x->left;
   x->left=(*y);
   (*y)->right=t2;
@@ -73,16 +69,17 @@ void read(tree *node){
   }
   read(node->right);
   read(node->left);
-  printf("%d\n",node->val);
+  printf("%d %d\n",node->val,node->height);
   return;
 
 }
 //write function for the thingy ....
 //just writing and balancing
 void write(tree **node,tree *new){
-  int balance=0;
   if((*node)==NULL){
     (*node)=new;
+    (*node)->right=NULL;
+    (*node)->left=NULL;
     return;
   }
   else if((*node)->val>new->val){
@@ -96,32 +93,42 @@ void write(tree **node,tree *new){
   } 
 
   (*node)->height=max(vyska((*node)->left),vyska((*node)->right))+1;
+  tree *temp;
+  int balance =balanceIt((*node));
 
-  balance =balanceIt((*node));
   if( balance >1 && new->val < (*node)->left->val){
-    *node=rotateRight(&(*node));
+    temp=rotateRight(&(*node));
+    if((*node)==first)
+      first=temp;
+
+
     return;
   }
 
   if( balance <- 1 && new->val > (*node)->right->val){
-     *node=rotateLeft(&(*node));
+    temp=rotateLeft(&(*node));
+    if((*node)==first)
+      first=temp;
     return;
   }
 
   if(balance >1 && new->val >(*node)->left->val){
-    (*node)->right=rotateLeft(&(*node)->left); // if it causes weird behavior in results then add the thing to temp instead of node
-    *node=rotateRight(&(*node));
+    (*node)->right=rotateLeft(&(*node)->left);
+    // if it causes weird behavior in results then add the thing to temp instead of node
+    temp=rotateRight(&(*node));
+    if(*node==first)
+      first=temp;
     return;
   }
   if(balance <-1 && new->val <(*node)->right->val){
-    (*node)->left=rotateLeft(&(*node)->right);
-    *node=rotateLeft(&(*node));
+    (*node)->left=rotateRight(&(*node)->right);
+    read(first);
+
+    temp=rotateLeft(&(*node));
+    if((*node)==first)
+      first=temp;
     return;
   }
-
-
-
-    
 }
 tree* search(tree *node,int num){
   if(node==NULL){
@@ -214,7 +221,7 @@ int main() {
       tree *node=first;
       new->left=NULL;
       new->right=NULL;
-      new->height=0;
+      new->height=1;
       scanf("%d %s %s %d.%d.%d",&new->val,new->name,new->surname,&new->day,&new->month,&new->year);
      // printf("%d\n%s %s\n%d.%d.%d\n",new->val,new->name,new->surname,new->day,new->month,new->year);	
       write(&node,new); 
@@ -225,7 +232,6 @@ int main() {
       scanf("%d",&firstNum);
       char uwu=getchar();
       if(uwu=='\n'){
-	printf("searching one num:%d\n",firstNum);
 	search(first,firstNum); 
       }
       else{
@@ -250,7 +256,7 @@ int main() {
       break;
     }
     case('r'):
-      printf("reading");
+      printf("reading\n");
       read(first);
       break;
     case ('\n'):
