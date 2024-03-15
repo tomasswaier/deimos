@@ -4,8 +4,8 @@
 typedef struct tree tree;
 struct tree {
   int val;
-  char name[40];
-  char surname[40];
+  char name[20];
+  char surname[20];
   int day;
   int month;
   int year;
@@ -186,74 +186,68 @@ void custom_strcpy(char *dest, const char *src) {
 //find if the thingy has one or more chilred
 //if <2 then move that child up
 //else uwu
-tree *delete(tree *node,int num){
-  if (node==NULL){
-    return node;
-  }
-  if(num<node->val)
-    node->left=delete(node->left,num);
-  else if(num>node->val)
-    node->right=delete(node->right,num);
-  else{
-    //
-    tree *temp;
-    if(!node->right ||!node->left ){
-      temp=node->left?node->left:node->right;
-      if(!temp){
-	temp = node;
-	node= NULL;
-      }
-      else if(temp)
-	  *node=*temp;
-      free(temp);
-
+tree* delete(tree **node, int num) {
+    if (*node == NULL) {
+        return *node;
     }
-    else{
-      temp=node->right;
-      while(temp->left!=NULL)
-	temp=temp->left;
+    if (num < (*node)->val)
+        (*node)->left = delete(&((*node)->left), num);
+    else if (num > (*node)->val)
+        (*node)->right = delete(&((*node)->right), num);
+    else {
+        tree *temp;
+        if ((*node)->right == NULL || (*node)->left == NULL) {
+            temp = (*node)->left ? (*node)->left : (*node)->right;
+            if (!temp) {
+                temp = *node;
+                *node = NULL;
+            } else {
+                **node = *temp; // Update the content of the node
+            }
+            free(temp);
+        } else {
+            temp = (*node)->right;
+            while (temp->left != NULL)
+                temp = temp->left;
 
-      node->val=temp->val;
-      custom_strcpy(node->name,temp->name);
-      custom_strcpy(node->surname,temp->surname);
-      node->day=temp->day;
-      node->month=temp->month;
-      node->year=node->year;
-      node->right=delete(node->right,temp->val);
+            (*node)->val = temp->val;
+            custom_strcpy((*node)->name, temp->name);
+            custom_strcpy((*node)->surname, temp->surname);
+            (*node)->day = temp->day;
+            (*node)->month = temp->month;
+            (*node)->year = temp->year;
+            (*node)->right = delete(&((*node)->right), temp->val);
+        }
     }
 
+    if (!(*node))
+        return *node;
 
+    (*node)->height = max(vyska((*node)->left), vyska((*node)->right)) + 1;
+    int balance = balanceIt(*node);
 
-  }
-  if(!node)
-    return node;
-  
-  node->height=max(vyska(node->left),vyska(node->right));
-  int balance =balanceIt(node);
-  if(balance >1 && balanceIt(node->left)>=0){
-    return rotateRight(&node);
-  }
-  if(balance >1 && balanceIt(node->left)<0){
-    node->left=rotateLeft(&node->left);
-    return rotateRight(&node);
-  }
+    if (balance > 1 && balanceIt((*node)->left) >= 0) {
+        return rotateRight(node);
+    }
+    if (balance > 1 && balanceIt((*node)->left) < 0) {
+        (*node)->left = rotateLeft(&((*node)->left));
+        return rotateRight(node);
+    }
 
-  if(balance <-1 && balanceIt(node->right)<=0){
-    return rotateLeft(&node);
-  }
+    if (balance < -1 && balanceIt((*node)->right) <= 0) {
+        return rotateLeft(node);
+    }
 
-  if(balance <-1 && balanceIt(node->right)>0)
-  {
-    node->right=rotateRight(&node->right);
-    return rotateLeft(&node);
-  }
-  return node;
+    if (balance < -1 && balanceIt((*node)->right) > 0) {
+        (*node)->right = rotateRight(&((*node)->right));
+        return rotateLeft(node);
+    }
 
-}
-int main() {
+    return *node;
+}int main() {
   
   char type = 'k';
-  while ((type = getchar()) != 'o') {
+  while ((type = getchar()) != EOF) {
     switch (type) {
     case ('i'): {
       tree *new=malloc(sizeof(tree));
@@ -302,17 +296,16 @@ int main() {
     case ('d'):{
       int num; 
       scanf("%d",&num);
-      first=delete(first,num);
+      tree *uwu=first;
+      first=delete(&uwu,num);
       break;
     }
     case('r'):
-      printf("reading\n");
       read(first);
       break;
     case ('\n'):
       break;
     default:
-      printf("uwu\n");
       break;
     }
   }
