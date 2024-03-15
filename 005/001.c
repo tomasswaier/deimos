@@ -177,7 +177,11 @@ void mulsearch(tree *node, int left, int right) {
         mulsearch(node->right, left, right);
     }
 }
-
+void custom_strcpy(char *dest, const char *src) {
+    while ((*dest++ = *src++) != '\0') {
+        // Copy character by character until the null terminator is encountered
+    }
+}
 
 //find if the thingy has one or more chilred
 //if <2 then move that child up
@@ -210,6 +214,11 @@ tree *delete(tree *node,int num){
 	temp=temp->left;
 
       node->val=temp->val;
+      custom_strcpy(node->name,temp->name);
+      custom_strcpy(node->surname,temp->surname);
+      node->day=temp->day;
+      node->month=temp->month;
+      node->year=node->year;
       node->right=delete(node->right,temp->val);
     }
 
