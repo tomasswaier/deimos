@@ -167,7 +167,12 @@ void mulsearch(tree *node, int left, int right) {
     } else {
         mulsearch(node->left, left, right);
         if (node->val >= left && node->val <= right) {
-            printf("%d %s %s %d.%d.%d\n", node->val, node->name, node->surname, node->day, node->month, node->year);
+	  if(isFirst!=0)
+            printf("\n%d %s %s %d.%d.%d", node->val, node->name, node->surname, node->day, node->month, node->year);
+	  else{
+	    printf("%d %s %s %d.%d.%d", node->val, node->name, node->surname, node->day, node->month, node->year);
+	    isFirst=0;}
+
         }
         mulsearch(node->right, left, right);
     }
@@ -260,8 +265,15 @@ int main() {
       char uwu=getchar();
       if(uwu=='\n'){
 	tree *new=search(first,firstNum);
-	printf("%d %s %s %d.%d.%d\n",new->val,new->name,new->surname,new->day,new->month,new->year);	
-      
+	if(new){
+	  if(isFirst!=0)
+	    printf("\n%d %s %s %d.%d.%d",new->val,new->name,new->surname,new->day,new->month,new->year);
+	}
+	else{
+	  printf("%d %s %s %d.%d.%d",new->val,new->name,new->surname,new->day,new->month,new->year);
+	  isFirst=0;
+	}
+
       }
       else{
 	int secondNum=0;
