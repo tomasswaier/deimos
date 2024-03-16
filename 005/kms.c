@@ -15,7 +15,7 @@ struct Node {
   struct Node *right;
   int height;
 };
-
+int isFirst=1;
 int max(int a, int b);
 
 // Calculate height
@@ -158,6 +158,12 @@ struct Node *deleteNode(struct Node *root, int key) {
       struct Node *temp = minValueNode(root->right);
 
       root->key = temp->key;
+      strcpi(root->name,temp->name);
+      strcpi(root->surname,temp->surname);
+      root->day=temp->day;
+      root->month=temp->month;
+      root->year=temp->year;
+      
 
       root->right = deleteNode(root->right, temp->key);
     }
@@ -190,6 +196,43 @@ struct Node *deleteNode(struct Node *root, int key) {
 
   return root;
 }
+struct Node* search(struct Node*root,int num){
+  if(root==NULL){
+    return NULL;
+  }
+  else if(root->key==num){
+    return root;
+  }
+  else if(num>root->key)
+      return search(root->right,num);
+  else if(num<root->key)
+      return search(root->left,num);
+  return NULL;
+
+
+}
+
+void mulsearch(struct Node *node, int left, int right) {
+    if (node == NULL)
+        return;
+
+    if (node->key< left) {
+        mulsearch(node->right, left, right);
+    } else if (node->key> right) {
+        mulsearch(node->left, left, right);
+    } else {
+        mulsearch(node->left, left, right);
+        if (node->key>= left && node->key<= right) {
+	  if(isFirst==1)
+            printf("%d %s %s %d.%d.%d", node->key, node->name, node->surname, node->day, node->month, node->year);
+	  else{
+	    printf("\n%d %s %s %d.%d.%d", node->key, node->name, node->surname, node->day, node->month, node->year);
+	    isFirst=0;}
+
+        }
+        mulsearch(node->right, left, right);
+    }
+}
 
 // Print the tree
 void printPreOrder(struct Node *root) {
@@ -210,27 +253,53 @@ int main() {
 	int val,day,month,year;
 	char name[20],surname[20];
         scanf("%d %s %s %d.%d.%d",&val,name,surname,&day,&month,&year);
- 
 	  root = insertNode(root,val,name,surname,day,month,year);
 
 	break;
 	}
 	case('s'):{
+	  int num;
+	  scanf("%d",&num);
+	  char owo=getchar();
+	  if(owo=='\n' || owo==EOF){
+	  struct Node *found=search(root,num);
+	  if(found!=NULL){
+	    if(isFirst==1){
+	    printf("%d %s %s %d.%d.%d",found->key,found->name,found->surname,found->day,found->month,found->year);
+	    isFirst=0;
+	    }
+	    else{
+	    printf("\n%d %s %s %d.%d.%d",found->key,found->name,found->surname,found->day,found->month,found->year);
+	}}
+	  }
+	  else{
+	    int num2;
+	    scanf("%d",&num2);
+	    if(num>num2){
+	    int temp=num;
+	    num=num2;
+	    num2=temp;
+	    }
+	    mulsearch(root,num,num2);
+	  }
+	  break;
+
 	}
+	case('d'):{
+	  int num;
+	  scanf("%d",&num);
+	  root=deleteNode(root,num);
+	  break;
+
 
       }
 
 
 
   }
-
-
-  printPreOrder(root);
-
+  }
   root = deleteNode(root, 3);
 
-  printf("\nAfter deletion: ");
-  printPreOrder(root);
 
   return 0;
 }
