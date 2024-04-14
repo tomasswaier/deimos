@@ -3,284 +3,274 @@
 
 #define INFINITY 1000000
 
+typedef struct Edge {
+    int dest;
+    int weight;
+    struct Edge* next;
+} Edge;
+
 typedef struct Node {
-  int position;
-  int value;
-  struct Node *next;
+    int value;
+    Edge* edges;
 } Node;
 
 typedef struct Graph {
-  int size;
-  Node **nodes;
-  int **adjacency;
+    int size;
+    Node* nodes;
 } Graph;
 
 int isFirst = 0;
 void printSpace() {
-  if (isFirst == 0)
-    isFirst++;
-  else
-    printf("\n");
+    if (isFirst == 0)
+        isFirst++;
+    else
+        printf("\n");
 }
 
-Graph *createGraph(int size) {
-  Graph *graph = (Graph *)malloc(sizeof(Graph));
-  graph->size = size;
-  graph->nodes = (Node **)calloc(size, sizeof(Node *));
-  graph->adjacency = (int **)malloc(size * sizeof(int *));
-  for (int i = 0; i < size; i++) {
-    graph->nodes[i] = NULL;
-    graph->adjacency[i] = (int *)calloc(size, sizeof(int));
-  }
-  return graph;
+Graph* createGraph(int size) {
+    Graph* graph = (Graph*)malloc(sizeof(Graph));
+    graph->size = size;
+    graph->nodes = (Node*)calloc(size, sizeof(Node));
+    return graph;
 }
 
-void addEdge(Graph *graph, int a, int b, int val) {
-  if (graph->adjacency[a][b] && graph->adjacency[a][b] != 0 || a == b ||
-      a < 0 || b < 0) {
-    printSpace();
-    printf("insert %d %d failed", a, b);
-    return;
-  }
-  int copya = a;
-  int copyb = b;
-  if (b < a) {
-    a = b;
-    b = copya;
-  }
-  Node *current = graph->nodes[a];
-  while (current != NULL) {
-    if (current->position == b) {
-      printSpace();
-      printf("insert %d %d failed", copya,copyb);
-      return;
+void addEdge(Graph* graph, int src, int dest, int weight) {
+    Edge* newEdge = (Edge*)malloc(sizeof(Edge));
+    newEdge->dest = dest;
+    newEdge->weight = weight;
+    newEdge->next = NULL;
+    if(src >dest){
+      int temp=dest;
+      dest=src;
+      src=temp;
     }
-    current = current->next;
-  }
 
-  Node *newNode = (Node *)malloc(sizeof(Node));
-  newNode->position = b;
-  newNode->value = val;
-  newNode->next = graph->nodes[a];
-  graph->nodes[a] = newNode;
 
-  graph->adjacency[a][b] = val;
-  graph->adjacency[b][a] = val;
-  return;
+    if (graph->nodes[src].edges == NULL) {
+        graph->nodes[src].edges = newEdge;
+    } else {
+
+        Edge* current = graph->nodes[src].edges;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newEdge;
+    }
 }
 
-void printGraph(Graph *graph) {
-  printf("debugovanie:\n");
-  for (int i = 0; i < graph->size; i++) {
-    Node *current = graph->nodes[i];
-    printf("printujem %d:", i);
+
+void printGraph(Graph* graph) {
+    printf("debugovanie:\n");
+    for (int i = 0; i < graph->size; i++) {
+        printf("printujem %d:", i);
+        Edge* current = graph->nodes[i].edges;
+        while (current != NULL) {
+            printf(" (%d, %d)", current->dest, current->weight);
+            current = current->next;
+        }
+        printf("\n");
+    }
+}
+
+void deleteEdge(Graph* graph, int src, int dest) {
+    Edge* current = graph->nodes[src].edges;
+    Edge* prev = NULL;
+    if(src >dest){
+      int temp=dest;
+      dest=src;
+      src=temp;
+    }
     while (current != NULL) {
-      printf(" (%d, %d)", current->position, current->value);
-      current = current->next;
+        if (current->dest == dest) {
+            if (prev == NULL) {
+                graph->nodes[src].edges = current->next;
+            } else {
+                prev->next = current->next;
+            }
+            free(current);
+            return;
+        }
+        prev = current;
+        current = current->next;
     }
-    printf("\n");
-  }
 }
 
-void deleteEdge(Graph *graph, int a, int b) {
-  if (!graph->adjacency[a][b] || graph->adjacency[a][b] == 0) {
+void updateEdge(Graph* graph, int src, int dest, int newVal) {
+    if (src < 0 || src >= graph->size || dest < 0 || dest >= graph->size) {
+        printSpace();
+        printf("update %d %d failed", src, dest);
+        return;
+    }
+    if(src >dest){
+      int temp=dest;
+      dest=src;
+      src=temp;
+    }
+
+    Edge* current = graph->nodes[src].edges;
+
+    while (current != NULL) {
+        if (current->dest == dest) {
+            current->weight = newVal;
+            return;
+        }
+        current = current->next;
+    }
+
+    // If the loop completes without finding the edge, print failure message
     printSpace();
-    printf("delete %d %d failed", a, b);
-    return;
-  }
-  if(a>b){
-    int temp=a;
-    a=b;
-    b=temp;
-  }
-
-  Node *current = graph->nodes[a];
-  Node *prev = NULL;
-
-  while (current != NULL) {
-    if (current->position == b) {
-      if (prev == NULL) {
-        graph->nodes[a] = current->next;
-      } else {
-        prev->next = current->next;
-      }
-      free(current);
-      break;
-    }
-    prev = current;
-    current = current->next;
-  }
-
-  graph->adjacency[a][b] = 0;
-  graph->adjacency[b][a] = 0;
-  return;
+    printf("update %d %d failed", src, dest);
 }
 
-void updateEdge(Graph *graph, int a, int b, int newVal) {
-  int copya=a;
-  int copyb=b;
-  
-  if(a>b){
-    a=b;
-    b=copya;
-  }
-  if (!graph-> adjacency[a][b] ||graph->adjacency[a][b] + newVal < 0) {
-    printSpace();
-    printf("update %d %d failed", copya, copyb);
-    return;
-  }
-
-  Node *current = graph->nodes[a];
-  while (current != NULL) {
-    if (current->position == b) {
-      current->value += newVal;
-      break;
+void dijkstra(Graph* graph, int startNode, int endNode) {
+    int* distances = (int*)malloc(graph->size * sizeof(int));
+    int* prev = (int*)malloc(graph->size * sizeof(int));
+    int* visited = (int*)calloc(graph->size, sizeof(int));
+    if(startNode >endNode){
+      int temp=endNode;
+      endNode=startNode;
+      startNode=temp;
     }
-    current = current->next;
-  }
-
-  graph->adjacency[a][b] += newVal;
-  graph->adjacency[b][a] += newVal;
-  return;
-}
-
-void dijkstra(Graph *graph, int startNode, int endNode) {
-  int *distances = (int *)malloc(graph->size * sizeof(int));
-  int *prev = (int *)malloc(graph->size * sizeof(int));
-  int *visited = (int *)calloc(graph->size, sizeof(int));
-
-  for (int i = 0; i < graph->size; i++) {
-    distances[i] = INFINITY;
-    prev[i] = -1;
-  }
-  distances[startNode] = 0;
-
-  for (int count = 0; count < graph->size - 1; count++) {
-    int minDistance = INFINITY;
-    int minNode = -1;
 
     for (int i = 0; i < graph->size; i++) {
-      if (!visited[i] && distances[i] < minDistance) {
-        minDistance = distances[i];
-        minNode = i;
-      }
+        distances[i] = INFINITY;
+        prev[i] = -1;
+    }
+    distances[startNode] = 0;
+
+    for (int count = 0; count < graph->size - 1; count++) {
+        int minDistance = INFINITY;
+        int minNode = -1;
+
+        for (int i = 0; i < graph->size; i++) {
+            if (!visited[i] && distances[i] < minDistance) {
+                minDistance = distances[i];
+                minNode = i;
+            }
+        }
+
+        if (minNode == -1) {
+            // No path exists between startNode and endNode
+            printSpace();
+            printf("search %d %d failede", startNode, endNode);
+            free(distances);
+            free(prev);
+            free(visited);
+            return;
+        }
+
+        visited[minNode] = 1;
+
+        Edge* currentEdge = graph->nodes[minNode].edges;
+        while (currentEdge != NULL) {
+            int neighbor = currentEdge->dest;
+            int weight = currentEdge->weight;
+            int newDistance = distances[minNode] + weight;
+            if (!visited[neighbor] && newDistance < distances[neighbor]) {
+                distances[neighbor] = newDistance;
+                prev[neighbor] = minNode;
+            }
+            currentEdge = currentEdge->next;
+        }
     }
 
-    if (minNode == -1) {
-      break;
+    // Path exists, reconstruct it
+    int current = endNode;
+    int* path = (int*)malloc(graph->size * sizeof(int));
+    int pathLength = 0;
+    while (current != startNode && prev[current] != -1) {
+        path[pathLength++] = current;
+        current = prev[current];
     }
+    path[pathLength++] = startNode;
 
-    visited[minNode] = 1;
-
-    for (int i = 0; i < graph->size; i++) {
-      if (!visited[i] && graph->adjacency[minNode][i] &&
-          distances[minNode] != INFINITY &&
-          distances[minNode] + graph->adjacency[minNode][i] < distances[i]) {
-        distances[i] = distances[minNode] + graph->adjacency[minNode][i];
-        prev[i] = minNode;
-      }
+    printSpace();
+    printf("%d: [", distances[endNode]);
+    for (int i = pathLength - 1; i >= 0; i--) {
+        printf("%d", path[i]);
+        if (i > 0)
+            printf(", ");
     }
-  }
+    printf("]");
 
-  int current = endNode;
-  int *path = (int *)malloc(graph->size * sizeof(int));
-  int pathLength = 0;
-  while (current != startNode && prev[current] != -1) {
-    path[pathLength++] = current;
-    current = prev[current];
-  }
-  path[pathLength++] = startNode;
-
-  printSpace();
-  printf("%d: [", distances[endNode]);
-  for (int i = pathLength - 1; i >= 0; i--) {
-    printf("%d", path[i]);
-    if (i > 0)
-      printf(", ");
-  }
-  printf("]");
-
-  free(distances);
-  free(prev);
-  free(visited);
-  free(path);
+    free(distances);
+    free(prev);
+    free(visited);
+    free(path);
 }
-
-void freeGraph(Graph *graph) {
-  for (int i = 0; i < graph->size; i++) {
-    Node *current = graph->nodes[i];
-    while (current != NULL) {
-      Node *temp = current;
-      current = current->next;
-      free(temp);
+void freeGraph(Graph* graph) {
+    for (int i = 0; i < graph->size; i++) {
+        Edge* current = graph->nodes[i].edges;
+        while (current != NULL) {
+            Edge* temp = current;
+            current = current->next;
+            free(temp);
+        }
     }
-    free(graph->adjacency[i]);
-  }
-  free(graph->nodes);
-  free(graph->adjacency);
-  free(graph);
+    free(graph->nodes);
+    free(graph);
 }
 
 int main() {
-  int N, M;
-  scanf("%d %d", &N, &M);
-  getchar();
+    int N, M;
+    scanf("%d %d", &N, &M);
+    getchar();
 
-  Graph *graph = createGraph(N);
+    Graph* graph = createGraph(N);
 
-  for (int i = 0; i < M; i++) {
-    int temp1, temp2, val;
-    scanf("(%d, %d, %d)\n", &temp1, &temp2, &val);
-    addEdge(graph, temp1, temp2, val);
-  }
-  char mode = 'k';
-  while ((mode = getchar()) != EOF) {
-    switch (mode) {
-    case 's': {
-      int startNode, endNode;
-      scanf("%d %d", &startNode, &endNode);
-      dijkstra(graph, startNode, endNode);
-      break;
+    for (int i = 0; i < M; i++) {
+        int src, dest, weight;
+        scanf("(%d, %d, %d)\n", &src, &dest, &weight);
+        addEdge(graph, src, dest, weight);
     }
-    case 'g': {
-      printGraph(graph);
-      break;
-    }
-    case 'i': {
-      int temp1, temp2, val;
-      scanf("%d %d %d", &temp1, &temp2, &val);
-      if ((temp1 < N && temp2 < N && temp1 != temp2 )&& !(temp1 < 0 || temp2 < 0)) {
-        addEdge(graph, temp1, temp2, val);
-      } else {
-        printSpace();
-        printf("insert %d %d failed", temp1, temp2);
-      }
-      break;
-    }
-    case 'd': {
-      int temp1, temp2;
-      scanf("%d %d", &temp1, &temp2);
-      if (temp1 < N && temp2 < N) {
-        deleteEdge(graph,temp1,temp2);
-      } else {
-      }
-      break;
-    }
-    case 'u': {
-      int temp1, temp2, newVal;
-      scanf("%d %d %d", &temp1, &temp2, &newVal);
-      if (temp1 < N && temp2 < N || temp1 ==temp2) {
-        updateEdge(graph, temp1,temp2, newVal);
-      } else {
-      }
-      break;
-    }
-    case '\n':
-      break;
-    }
-  }
 
-  freeGraph(graph);
-  return 0;
+    char mode = 'k';
+    while ((mode = getchar()) != EOF) {
+        switch (mode) {
+            case 's': {
+                int startNode, endNode;
+                scanf("%d %d", &startNode, &endNode);
+                dijkstra(graph, startNode, endNode);
+                break;
+            }
+            case 'g': {
+                printGraph(graph);
+                break;
+            }
+            case 'i': {
+                int src, dest, weight;
+                scanf("%d %d %d", &src, &dest, &weight);
+                if ((src < N && dest < N && src != dest) && !(src < 0 || dest < 0)) {
+                    addEdge(graph, src, dest, weight);
+                } else {
+                    printSpace();
+                    printf("insert %d %d failed", src, dest);
+                }
+                break;
+            }
+            case 'd': {
+                int src, dest;
+                scanf("%d %d", &src, &dest);
+                if (src < N && dest < N) {
+                    deleteEdge(graph, src, dest);
+                } else {
+                }
+                break;
+            }
+            case 'u': {
+                int src, dest, newVal;
+                scanf("%d %d %d", &src, &dest, &newVal);
+                if (src < N && dest < N) {
+                    updateEdge(graph, src, dest, newVal);
+                } else {
+                }
+                break;
+            }
+            case '\n':
+                break;
+        }
+    }
+
+    freeGraph(graph);
+    return 0;
 }
-
