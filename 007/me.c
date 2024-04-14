@@ -37,62 +37,58 @@ void addElp(int start, int target, int val, node *graph) {
   int temp = 0;
   int ogStart = start;
   int ogTarget = target;
-  if (start > target) {
-    temp = start;
-    start = target;
-    target = temp;
-  }
   if (start != target)
     temp = add(target, val, &graph[start].next);
   if (temp == 0) {
     printSpace();
     printf("insert %d %d failed", ogStart, ogTarget);
   }
+
+  temp = add(start, val, &graph[target].next);
 }
-void delete (int start, int target, node *graph) {
+int delete2 (int start, int target, node *graph) {
   int temp = 0;
   int ogStart = start;
   int ogTarget = target;
-  if (start > target) {
-    temp = start;
-    start = target;
-    target = temp;
-  }
   if (start == target) {
     printSpace();
     printf("delete %d %d failed", ogStart, ogTarget);
+    return 0;
   }
   edge *first = graph[start].next;
   if (first->dest == target) {
     graph[start].next = first->next;
     free(first);
-    return;
+    return 1;
   }
   edge *second = first;
   while (first) {
     if (first->dest == target) {
       second->next = second->next->next;
       free(first);
-      return;
+      return 1;
     }
     second = first;
     first = first->next;
   }
   printSpace();
   printf("delete %d %d failed", ogStart, ogTarget);
-  return;
+  return 0;
 }
-void update(int start, int target, int value, node *graph) {
+
+void delete (int start, int target, node *graph) {
+  int temp= delete2(start,target,graph); 
+  if(temp)
+      temp= delete2(target,start,graph); 
+
+}
+int update1(int start, int target, int value, node *graph) {
   int ogStart = start;
   int ogTarget = target;
-  if (start > target) {
-    start = target;
-    target = ogStart;
-  }
   if (target == start) {
     printSpace();
     printf("update %d %d failed", ogStart, ogTarget);
-    return;
+    return 0;
   }
   edge *read = graph[start].next;
   while (read) {
@@ -100,17 +96,27 @@ void update(int start, int target, int value, node *graph) {
       if (read->weight + value < 0) {
         printSpace();
         printf("update %d %d failed", ogStart, ogTarget);
-        return;
+        return 0;
       } else {
         read->weight += value;
-        return;
+        return 1;
       }
     }
     read = read->next;
   }
-
+  printSpace();
   printf("update %d %d failed", ogStart, ogTarget);
+  return 0;
 }
+
+void update(int start, int target, int value, node *graph) {
+  int temp=update1(start,target,value,graph);
+  if(temp)
+    temp=update1(target,start,value,graph);
+
+
+}
+
 void debug(int N, node *graph) {
   for (int i = 0; i < N; i++) {
     printf("node %d:", i);
@@ -140,19 +146,15 @@ void queueAdd(stack **queue, stack *temp, int *tab) {
   return;
 }
 void dijkstra(int start, int target, node *graph, int N) {
-  int ogStart=start;
-  int ogTarget=target;
-  if(start>target){
-    start=target;
-    target=ogStart;
-  }
+  int ogStart = start;
+  int ogTarget = target;
   int *distances = malloc(N * sizeof(int));
   int *previous = malloc(N * sizeof(int));
   int *visited = calloc(N, sizeof(int));
   stack *queue = NULL;
-  if(start==target){
-    printSpace();//might be a failurie
-    printf("search %d %d failed",start,start);
+  if (start == target) {
+    printSpace(); // might be a failurie
+    printf("search %d %d failed", start, start);
   }
   for (int i = 0; i < N; i++) {
     distances[i] = -1;
@@ -182,9 +184,12 @@ void dijkstra(int start, int target, node *graph, int N) {
       if (distances[current] + weight < distances[dest] ||
           distances[dest] == -1) {
         distances[dest] = distances[current] + weight;
+        // Update previous node for path reconstruction
         previous[dest] = current;
 
         if (!visited[dest]) {
+          // If the destination node has not been visited yet, add it to the
+          // queue
           stack *newNode = malloc(sizeof(stack));
           newNode->val = dest;
           newNode->next = NULL;
@@ -219,7 +224,7 @@ void dijkstra(int start, int target, node *graph, int N) {
     printf("]");
   } else {
     printSpace();
-    printf("search %d %d failed",ogStart,ogTarget);
+    printf("search %d %d failed", ogStart, ogTarget);
   }
 
   free(distances);
@@ -290,7 +295,8 @@ int main() {
       char testingQueue = 'a';
       int *tab = calloc(N, sizeof(int));
       tab[0] = -1;
-      // Read and add elements to the priority queue until 'q' is encountered
+      // Read and add elements to the priority queue until 'q' is
+      // encountered
       while ((testingQueue = getchar()) != EOF) {
         if (testingQueue == '.')
           if (testingQueue == ' ') {
