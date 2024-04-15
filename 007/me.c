@@ -14,6 +14,16 @@ typedef struct stack {
   int val;
   struct stack *next;
 } stack;
+typedef struct PQNode {
+  int top;
+  int distance;
+} PQNode;
+
+typedef struct {
+  PQNode *array;
+  int size;
+} prioQ;
+
 int isFirst = 0;
 void printSpace() {
   if (isFirst == 0)
@@ -46,7 +56,7 @@ void addElp(int start, int target, int val, node *graph) {
 
   temp = add(start, val, &graph[target].next);
 }
-int delete2 (int start, int target, node *graph) {
+int delete2(int start, int target, node *graph) {
   int temp = 0;
   int ogStart = start;
   int ogTarget = target;
@@ -77,10 +87,9 @@ int delete2 (int start, int target, node *graph) {
 }
 
 void delete (int start, int target, node *graph) {
-  int temp= delete2(start,target,graph); 
-  if(temp)
-      temp= delete2(target,start,graph); 
-
+  int temp = delete2(start, target, graph);
+  if (temp)
+    temp = delete2(target, start, graph);
 }
 int update1(int start, int target, int value, node *graph) {
   int ogStart = start;
@@ -110,13 +119,10 @@ int update1(int start, int target, int value, node *graph) {
 }
 
 void update(int start, int target, int value, node *graph) {
-  int temp=update1(start,target,value,graph);
-  if(temp)
-    temp=update1(target,start,value,graph);
-
-
+  int temp = update1(start, target, value, graph);
+  if (temp)
+    temp = update1(target, start, value, graph);
 }
-
 void debug(int N, node *graph) {
   for (int i = 0; i < N; i++) {
     printf("node %d:", i);
@@ -129,21 +135,55 @@ void debug(int N, node *graph) {
     printf("\n");
   }
 }
-void queueAdd(stack **queue, stack *temp, int *tab) {
-  if (*queue == NULL || tab[temp->val] <= tab[(*queue)->val]) {
 
-    temp->next = *queue;
-    *queue = temp;
-    return;
-  }
+prioQ *makePrioQ(int num_vertices) {
+  prioQ *pq = (prioQ *)malloc(sizeof(prioQ));
+  pq->array = (PQNode *)malloc(num_vertices*2* sizeof(PQNode));
+  pq->size = 0;
+  return pq;
+}
 
-  stack *tempo = *queue;
-  while (tempo->next && tab[tempo->next->val] < tab[temp->val]) {
-    tempo = tempo->next;
+void heapify(prioQ *pq, int idx) {
+  int smallest = idx;
+  int left = 2 * idx + 1;
+  int right = 2 * idx + 2;
+
+  if (left < pq->size &&
+      pq->array[left].distance < pq->array[smallest].distance)
+    smallest = left;
+
+  if (right < pq->size &&
+      pq->array[right].distance < pq->array[smallest].distance)
+    smallest = right;
+
+  if (smallest != idx) {
+    PQNode temp = pq->array[smallest];
+    pq->array[smallest] = pq->array[idx];
+    pq->array[idx] = temp;
+    heapify(pq, smallest);
   }
-  temp->next = tempo->next;
-  tempo->next = temp;
-  return;
+}
+
+void insert(prioQ *pq, int top, int distance) {
+  pq->size++;
+  int i = pq->size - 1;
+  pq->array[i].top = top;
+  pq->array[i].distance = distance;
+
+  while (i > 0 && pq->array[(i - 1) / 2].distance > pq->array[i].distance) {
+    PQNode temp =pq->array[i];
+    pq->array[i] = pq->array[(i - 1) / 2];
+    pq->array[(i - 1) / 2] = temp;
+    i = (i - 1) / 2;
+  }
+}
+
+PQNode extractMin(prioQ *pq) {
+  PQNode min = pq->array[0];
+  pq->array[0] = pq->array[pq->size - 1];
+  pq->size--;
+  heapify(pq, 0);
+  return min;
 }
 void dijkstra(int start, int target, node *graph, int N) {
   int ogStart = start;
@@ -151,51 +191,40 @@ void dijkstra(int start, int target, node *graph, int N) {
   int *distances = malloc(N * sizeof(int));
   int *previous = malloc(N * sizeof(int));
   int *visited = calloc(N, sizeof(int));
-  stack *queue = NULL;
+  prioQ *queue = makePrioQ(N);
+
   if (start == target) {
-    printSpace(); // might be a failurie
+    printSpace();
     printf("search %d %d failed", start, start);
   }
+
   for (int i = 0; i < N; i++) {
     distances[i] = -1;
     previous[i] = -1;
   }
 
   distances[start] = 0;
+  insert(queue, start, 0);
 
-  stack *temp = malloc(sizeof(stack));
-  temp->val = start;
-  temp->next = NULL;
-  queueAdd(&queue, temp, distances);
+  while (queue->size != 0) {
 
-  while (queue != NULL) {
-    int current = queue->val;
-    stack *temp = queue;
-    queue = queue->next;
-    free(temp);
+    PQNode current = extractMin(queue);
+    int toplaner = current.top;
+    visited[toplaner] = 1;
 
-    visited[current] = 1;
-
-    edge *adjacent = graph[current].next;
+    edge *adjacent = graph[toplaner].next;
     while (adjacent != NULL) {
       int dest = adjacent->dest;
       int weight = adjacent->weight;
 
-      if (distances[current] + weight < distances[dest] ||
-          distances[dest] == -1) {
-        distances[dest] = distances[current] + weight;
-        // Update previous node for path reconstruction
-        previous[dest] = current;
-
-        if (!visited[dest]) {
-          // If the destination node has not been visited yet, add it to the
-          // queue
-          stack *newNode = malloc(sizeof(stack));
-          newNode->val = dest;
-          newNode->next = NULL;
-          queueAdd(&queue, newNode, distances);
-        }
+      if (!visited[dest] &&
+          (distances[toplaner] + weight < distances[dest] ||
+           distances[dest] == -1)) {
+        distances[dest] = distances[toplaner] + weight;
+        previous[dest] = toplaner;
+        insert(queue, dest, distances[dest]);
       }
+
       adjacent = adjacent->next;
     }
   }
@@ -230,6 +259,8 @@ void dijkstra(int start, int target, node *graph, int N) {
   free(distances);
   free(previous);
   free(visited);
+  free(queue->array);
+  free(queue);
 }
 void freeing(int N, node *graph) {
   for (int i = 0; i < N; i++) {
@@ -259,6 +290,7 @@ int main() {
     getchar();
     addElp(start, target, val, graph);
   }
+
   char mode = 'k';
   while ((mode = getchar()) != EOF) {
     switch (mode) {
@@ -277,58 +309,27 @@ int main() {
       update(a, b, val, graph);
       break;
     }
-
     case ('d'): {
-      int a, b, val;
+      int a, b;
       scanf(" %d %d", &a, &b);
       delete (a, b, graph);
       break;
     }
     case ('s'): {
-      int a, b, val;
+      int a, b;
       scanf(" %d %d", &a, &b);
       dijkstra(a, b, graph, N);
       break;
     }
     case ('p'): {
-      stack *fakeQueue = NULL;
-      char testingQueue = 'a';
-      int *tab = calloc(N, sizeof(int));
-      tab[0] = -1;
-      // Read and add elements to the priority queue until 'q' is
-      // encountered
-      while ((testingQueue = getchar()) != EOF) {
-        if (testingQueue == '.')
-          if (testingQueue == ' ') {
-            stack *temp = malloc(sizeof(stack));
-            scanf("%d", &temp->val);
-            temp->next = NULL;
-            queueAdd(&fakeQueue, temp, tab);
-
-            // Print the current state of the priority queue
-            stack *tempPrint = fakeQueue;
-            while (tempPrint) {
-              printf("%d ", tempPrint->val);
-              tempPrint = tempPrint->next;
-            }
-            printf("\n");
-          }
-      }
-
-      // Free memory allocated for the priority queue
-      stack *temp = fakeQueue;
-      while (temp) {
-        stack *next = temp->next;
-        free(temp);
-        temp = next;
-      }
-      free(tab);
+      printf("Not implemented yet\n"); // Placeholder for priority queue testing
       break;
     }
     case ('\n'):
       break;
     }
   }
+
   freeing(N, graph);
   return 0;
 }
