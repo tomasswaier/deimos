@@ -127,7 +127,7 @@ void update(int start, int target, int value, uwu *graph) {
 
 prioQ *makePrioQ(int num_vertices) {
   prioQ *pq = (prioQ *)malloc(sizeof(prioQ));
-  pq->array = (PQNode *)malloc(num_vertices * 3* sizeof(PQNode));
+  pq->array = (PQNode *)malloc(num_vertices * 8 * sizeof(PQNode));
   pq->size = 0;
   
   for (int i = 0; i < num_vertices*2; i++) {
@@ -209,20 +209,10 @@ void printSearch(int **ngnl, ll result, int N) {
   }
   printf("]");
 }
-void freePrioQueue(prioQ *queue,int **distances,int ** visited,int ***ngnl,long long ** key,int N) {
-
-    free(*key);
-    free(*distances);
-    free(*visited);
-    for (int i = 0; i < N; i++) {
-      free((*ngnl)[i]);
-    }
-    free(*ngnl);
-
+void freePrioQueue(prioQ *queue) {
   free(queue->array);
   free(queue);
 }
-
 void prim(int start, uwu *graph, int N) {
   int *distances = malloc(N * sizeof(int));
   int *visited = calloc(N, sizeof(int));
@@ -283,12 +273,25 @@ void prim(int start, uwu *graph, int N) {
   if (result == 0) {
     printSpace();
     printf("search %d failed", start);
-  }
-  else{
-    printSearch(ngnl,result,N);
-  }
 
-  freePrioQueue(queue,&distances,&visited,&ngnl,&key,N);
+    free(distances);
+    free(visited);
+    for (int i = 0; i < N; i++) {
+      free(ngnl[i]);
+    }
+    free(ngnl);
+
+    freePrioQueue(queue);
+    return;
+  }
+  printSearch(ngnl, result, N);
+  free(distances);
+  free(visited);
+  for (int i = 0; i < N; i++) {
+    free(ngnl[i]);
+  }
+  free(ngnl);
+  freePrioQueue(queue);
 }
 void freeing(int N, uwu *graph) {
   for (int i = 0; i < N; i++) {
@@ -364,4 +367,3 @@ int main() {
   freeing(N, graph);
   return 0;
 }
-
